@@ -83,7 +83,8 @@
   </div>
 </footer>
 
-<script src="js/main.js?v=20260905-ai-chat"></script>
+<script src="js/main.js?v=20260907-live-swipe"></script>
+<script src="js/glow-cursor.js?v=20260907-2d"></script>
 </body>
 
 </html>

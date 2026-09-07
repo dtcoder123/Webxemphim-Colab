@@ -31,6 +31,13 @@ foreach ($movies as $movie) {
   $movieShelves[$shelfGenre][] = $movie;
 }
 
+$featuredRailMovies = array_slice($movies, 0, 5);
+$featuredRailIds = array_map(static fn($movie) => (int)$movie['id'], $featuredRailMovies);
+if (!in_array((int)$featured['id'], $featuredRailIds, true)) {
+    array_pop($featuredRailMovies);
+    $featuredRailMovies[] = $featured;
+}
+
 $movieCatalog = array_map(function ($movie) {
     return [
         'id' => (int)($movie['id'] ?? 0),
@@ -53,9 +60,11 @@ window.movieCatalog = <?php echo json_encode($movieCatalog, JSON_UNESCAPED_UNICO
 
   <!-- ============ HERO / HOLOGRAM BANNER ============ -->
   <section class="hero" id="featured">
-    <div class="hero__bg" style="background-image:url('<?php echo $featured['poster']; ?>')"></div>
+    <div class="hero__bg"></div>
+    <canvas class="hero__aero-shards" aria-hidden="true"></canvas>
     <div class="hero__scrim"></div>
     <div class="hero__grid-overlay" aria-hidden="true"></div>
+    <canvas class="hero__glow-cursor" aria-hidden="true"></canvas>
 
     <div class="container hero__inner">
       <div class="hero__content">
@@ -101,9 +110,9 @@ window.movieCatalog = <?php echo json_encode($movieCatalog, JSON_UNESCAPED_UNICO
         </div>
 
         <div class="hero__rail" aria-label="Phim đề xuất">
-          <?php foreach (array_slice($movies, 0, 5) as $mini): ?>
+          <?php foreach ($featuredRailMovies as $mini): ?>
             <button type="button"
-               class="hero__mini-card"
+              class="hero__mini-card <?php echo (int)$mini['id'] === (int)$featured['id'] ? 'is-selected' : ''; ?>"
                title="<?php echo htmlspecialchars($mini['title']); ?>"
                data-id="<?php echo (int)$mini['id']; ?>"
                data-title="<?php echo htmlspecialchars($mini['title'], ENT_QUOTES); ?>"
