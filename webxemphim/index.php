@@ -122,7 +122,7 @@ window.movieCatalog = <?php echo json_encode($movieCatalog, JSON_UNESCAPED_UNICO
                data-year="<?php echo htmlspecialchars($mini['year'], ENT_QUOTES); ?>"
                data-duration="<?php echo htmlspecialchars($mini['duration'], ENT_QUOTES); ?>"
                data-rating="<?php echo htmlspecialchars($mini['rating'], ENT_QUOTES); ?>">
-              <img src="<?php echo $mini['poster']; ?>" alt="<?php echo htmlspecialchars($mini['title']); ?>" loading="lazy">
+              <img src="<?php echo htmlspecialchars($mini['poster']); ?>" alt="<?php echo htmlspecialchars($mini['title']); ?>" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop';">
             </button>
           <?php endforeach; ?>
         </div>

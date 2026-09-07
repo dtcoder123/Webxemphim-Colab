@@ -17,8 +17,8 @@ $isLoggedIn = !empty($_SESSION['user_logged_in']);
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=20260907-warp-text">
-<link rel="stylesheet" href="css/jarvis-hud.css?v=20260831-expanded-v2">
+<link rel="stylesheet" href="css/style.css?v=20260907-play-center-btn">
+<link rel="stylesheet" href="css/jarvis-hud.css?v=20260907-play-center-btn">
 </head>
 <body>
 <!-- ============ JARVIS BOOT SEQUENCE ============ -->

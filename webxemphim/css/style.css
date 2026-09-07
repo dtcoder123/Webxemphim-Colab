@@ -35,7 +35,7 @@
   --font-mono: "Chakra Petch", monospace;
 
   --radius: 2px;
-  --container-w: 100%;
+  --container-w: 95%;
 }
 
 /* ---------- Reset ---------- */
@@ -81,10 +81,15 @@ body {
     linear-gradient(180deg, #030910 0%, #09131d 22%, var(--bg-void) 100%);
 }
 
+main {
+  width: 100%;
+}
+
 .container {
   max-width: var(--container-w);
   width: 100%;
   padding: 0 32px;
+  margin: 0 auto;
 }
 
 img {
@@ -605,6 +610,7 @@ h4 {
    ========================================================= */
 .hero {
   position: relative;
+  width: 100%;
   min-height: 620px;
   display: flex;
   align-items: center;
@@ -688,7 +694,7 @@ h4 {
   grid-template-columns: minmax(420px, 0.95fr) minmax(420px, 1.05fr);
   gap: 12px;
   align-items: center;
-  width: min(100%, 1120px);
+  width: min(95%, 1400px);
   min-height: 540px;
   margin: 0 auto;
 }
@@ -707,20 +713,26 @@ h4 {
   justify-content: center;
   align-items: flex-end;
   min-height: 500px;
-  margin-left: 0;
+  width: min(100%, 540px);
+  margin: 0 auto;
 }
 
 .hero__poster-wrap {
   position: relative;
-  width: min(100%, 520px);
+  width: 100%;
   overflow: hidden;
-  border-radius: 28px 28px 18px 18px;
+  border-radius: 28px 28px 20px 20px;
   border: 1px solid rgba(127, 231, 255, 0.22);
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.48),
     0 0 30px rgba(197, 29, 38, 0.18),
     0 0 22px rgba(127, 231, 255, 0.12);
   background: rgba(9, 15, 25, 0.7);
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
 }
 .hero__poster-img {
   width: 100%;
@@ -736,13 +748,6 @@ h4 {
     opacity 0.35s ease,
     transform 0.35s ease,
     filter 0.35s ease;
-}
-.hero__poster-wrap {
-  opacity: 1;
-  transform: translateX(0);
-  transition:
-    opacity 0.35s ease,
-    transform 0.35s ease;
 }
 .hero__poster-wrap.is-switching {
   opacity: 0.35;
@@ -792,19 +797,25 @@ h4 {
 
 .hero__rail {
   position: absolute;
-  right: 18px;
-  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 14px;
   display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  padding: 10px 10px 8px;
-  border: 1px solid rgba(127, 231, 255, 0.14);
-  background: rgba(5, 12, 18, 0.7);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.28);
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(127, 231, 255, 0.28);
+  background: rgba(4, 10, 18, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(0, 240, 255, 0.1);
   cursor: grab;
   touch-action: pan-y;
   user-select: none;
+  max-width: calc(100% - 24px);
+  z-index: 10;
   --drag-offset: 0px;
 }
 .hero__rail:active,
@@ -819,16 +830,17 @@ h4 {
     0 0 24px rgba(127, 231, 255, 0.16);
 }
 .hero__mini-card {
-  width: 72px;
-  height: 100px;
-  border-radius: 12px;
+  width: 68px;
+  height: 94px;
+  flex-shrink: 0;
+  border-radius: 10px;
   overflow: hidden;
   border: 1px solid rgba(127, 231, 255, 0.2);
-  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
   transition:
     transform 0.2s ease,
     border-color 0.2s ease;
-  background: transparent;
+  background: #09121d;
   padding: 0;
   cursor: pointer;
   will-change: transform;
@@ -1518,7 +1530,9 @@ h4 {
 }
 .player-hud__screen.is-playing .player-hud__playbtn {
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.85);
 }
 .player-hud__scan {
   position: absolute;
@@ -1529,6 +1543,7 @@ h4 {
   box-shadow: 0 0 12px var(--cyan);
   animation: scan-move 4s linear infinite;
   opacity: 0.8;
+  pointer-events: none;
 }
 @keyframes scan-move {
   0% {
@@ -1538,11 +1553,15 @@ h4 {
     top: 100%;
   }
 }
+.player-hud__crosshair {
+  pointer-events: none;
+}
 .player-hud__crosshair span {
   position: absolute;
   width: 22px;
   height: 22px;
   border: 1px solid rgba(0, 240, 255, 0.5);
+  pointer-events: none;
 }
 .player-hud__crosshair span:nth-child(1) {
   top: 16px;
@@ -1570,25 +1589,29 @@ h4 {
 }
 
 .player-hud__playbtn {
-  position: relative;
-  z-index: 3;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
   width: 84px;
   height: 84px;
   border-radius: 50%;
   border: 2px solid var(--cyan);
-  background: rgba(0, 240, 255, 0.08);
+  background: rgba(0, 240, 255, 0.14);
   color: var(--cyan);
-  font-size: 26px;
+  font-size: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 30px rgba(0, 240, 255, 0.45);
-  transition: all 0.25s ease;
+  cursor: pointer;
+  transition: opacity 0.28s ease, visibility 0.28s ease, transform 0.28s ease, background 0.25s ease, box-shadow 0.25s ease;
 }
 .player-hud__playbtn:hover {
-  background: rgba(0, 240, 255, 0.2);
-  box-shadow: 0 0 46px rgba(0, 240, 255, 0.7);
-  transform: scale(1.06);
+  background: rgba(0, 240, 255, 0.28);
+  box-shadow: 0 0 46px rgba(0, 240, 255, 0.75);
+  transform: translate(-50%, -50%) scale(1.08);
 }
 
 .player-hud__controls {

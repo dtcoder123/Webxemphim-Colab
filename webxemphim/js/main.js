@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   /* ---------- Category / genre filter tabs + search + suggestions (index.php) ---------- */
+  const filterTabs = document.getElementById('filterTabs');
   const movieGrid = document.getElementById('movieGrid');
   const movieSearchInput = document.getElementById('movieSearchInput');
   const movieSuggestions = document.getElementById('movieSuggestions');
@@ -673,7 +674,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const syncPlayerUi = () => {
     const isPlaying = playPauseState();
     if (playerScreen) playerScreen.classList.toggle('is-playing', isPlaying);
-    if (playBtn) playBtn.style.opacity = isPlaying ? '0' : '1';
+    if (playBtn) {
+      if (isPlaying) {
+        playBtn.style.opacity = '0';
+        playBtn.style.visibility = 'hidden';
+        playBtn.style.pointerEvents = 'none';
+      } else {
+        playBtn.style.opacity = '1';
+        playBtn.style.visibility = 'visible';
+        playBtn.style.pointerEvents = 'auto';
+      }
+    }
     if (playBtn2) playBtn2.textContent = isPlaying ? '❙❙' : '▶';
 
     if (moviePlayer && moviePlayer.tagName === 'VIDEO') {
@@ -702,10 +713,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const togglePlaying = async () => {
-    if (!playerScreen || !moviePlayer) return;
+    if (!moviePlayer) return;
 
     if (moviePlayer.tagName === 'VIDEO') {
-      if (moviePlayer.paused) {
+      if (moviePlayer.paused || moviePlayer.ended) {
         try {
           await moviePlayer.play();
         } catch (e) {
@@ -730,12 +741,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (moviePlayer && moviePlayer.tagName === 'VIDEO') {
     moviePlayer.addEventListener('play', syncPlayerUi);
+    moviePlayer.addEventListener('playing', syncPlayerUi);
     moviePlayer.addEventListener('pause', syncPlayerUi);
+    moviePlayer.addEventListener('ended', syncPlayerUi);
     moviePlayer.addEventListener('timeupdate', syncPlayerUi);
     moviePlayer.addEventListener('loadedmetadata', syncPlayerUi);
   }
 
-  if (playBtn) playBtn.addEventListener('click', togglePlaying);
+  if (playBtn) {
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePlaying();
+    });
+  }
   if (playBtn2) playBtn2.addEventListener('click', togglePlaying);
   if (rewindBtn) rewindBtn.addEventListener('click', () => seekVideo(-10));
   if (forwardBtn) forwardBtn.addEventListener('click', () => seekVideo(10));
@@ -755,6 +773,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (moviePlayer && moviePlayer.tagName === 'IFRAME') {
     moviePlayer.dataset.playing = 'false';
   }
+
+  // Khởi tạo trạng thái ban đầu của player UI
+  syncPlayerUi();
 
   /* ---------- AI Chatbox ---------- */
   const aiLauncher = document.getElementById('aiChatLauncher');

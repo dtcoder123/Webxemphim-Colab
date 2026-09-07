@@ -32,6 +32,7 @@
 .hud-panel,
 .hud-frame {
   position: relative;
+  width: 100%;
 }
 
 /* Corner notches — reusable on any hud-panel/hud-frame */
