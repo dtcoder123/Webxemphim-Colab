@@ -71,14 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
       mainNav.classList.toggle('is-open');
     });
   }
-
   /* ---------- Category / genre filter tabs + search + suggestions (index.php) ---------- */
-  const filterTabs = document.getElementById('filterTabs');
   const movieGrid = document.getElementById('movieGrid');
   const movieSearchInput = document.getElementById('movieSearchInput');
   const movieSuggestions = document.getElementById('movieSuggestions');
   const featuredHero = document.querySelector('.hero');
-
   const normalizeFilterText = (value) => {
     return String(value || '')
       .toLowerCase()
@@ -333,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- Hero featured movie switcher ---------- */
   const heroBg = document.querySelector('.hero__bg');
+  const aeroCanvas = document.querySelector('.hero__aero-shards');
   const heroTitle = document.querySelector('.hero__title');
   const heroTagline = document.querySelector('.hero__tagline');
   const heroMeta = document.querySelector('.hero__meta');
@@ -341,6 +339,134 @@ document.addEventListener('DOMContentLoaded', () => {
   const heroPosterWrap = document.querySelector('.hero__poster-wrap');
   const heroActionsPrimary = document.querySelector('.hero__actions .btn-hud--primary');
   const heroActionsInfo = document.querySelector('.hero__actions .btn-hud--ghost');
+  const heroMiniCards = document.querySelectorAll('.hero__mini-card');
+  const heroDragSurface = featuredHero;
+  let isDraggingHeroRail = false;
+  let blockHeroRailClick = false;
+  let heroRailPointerId = null;
+  let heroDragStartX = 0;
+  let heroDragOffset = 0;
+
+  const replayAnimation = (element, animationName) => {
+    if (!element) return;
+    element.classList.remove('animate__animated', animationName);
+    void element.offsetWidth;
+    element.classList.add('animate__animated', animationName);
+  };
+
+  const initAeroShards = (canvas, root) => {
+    if (!canvas || !root || !canvas.getContext) return;
+    const context = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const pointer = { x: 0.68, y: 0.46, active: false };
+    const shards = [];
+    let width = 0;
+    let height = 0;
+    let frameId = 0;
+    let startTime = performance.now();
+
+    const resize = () => {
+      const bounds = root.getBoundingClientRect();
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      width = Math.max(1, bounds.width);
+      height = Math.max(1, bounds.height);
+      canvas.width = Math.round(width * pixelRatio);
+      canvas.height = Math.round(height * pixelRatio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      shards.length = 0;
+      const count = width < 700 ? 90 : 190;
+      for (let index = 0; index < count; index += 1) {
+        shards.push({
+          phase: Math.random(),
+          lane: Math.random() * 2 - 1,
+          depth: Math.random(),
+          size: 5 + Math.random() * 15,
+          stretch: 0.65 + Math.random() * 1.6,
+          rotation: Math.random() * Math.PI,
+          speed: 0.035 + Math.random() * 0.08,
+          hue: Math.random()
+        });
+      }
+    };
+
+    const draw = (timestamp) => {
+      const elapsed = (timestamp - startTime) / 1000;
+      context.clearRect(0, 0, width, height);
+      const gradient = context.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, 'rgba(3, 10, 17, 0.98)');
+      gradient.addColorStop(0.55, 'rgba(8, 17, 25, 0.88)');
+      gradient.addColorStop(1, 'rgba(22, 8, 16, 0.96)');
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, width, height);
+
+      const pointerX = pointer.x * width;
+      const pointerY = pointer.y * height;
+      shards.forEach((shard) => {
+        const progress = (shard.phase + (reduceMotion.matches ? 0 : elapsed * shard.speed)) % 1;
+        const wave = Math.sin(progress * Math.PI * 2 + shard.lane * 2.4);
+        let x = progress * (width + 220) - 110;
+        let y = height * (0.18 + (shard.lane + 1) * 0.29) + wave * height * 0.14;
+        const distanceX = x - pointerX;
+        const distanceY = y - pointerY;
+        const distance = Math.hypot(distanceX, distanceY);
+        if (pointer.active && distance < 230) {
+          const force = (1 - distance / 230) ** 2;
+          x += (distanceX / Math.max(distance, 1)) * force * 75;
+          y += (distanceY / Math.max(distance, 1)) * force * 75;
+        }
+
+        const scale = 0.55 + shard.depth * 0.9;
+        const size = shard.size * scale;
+        const alpha = 0.16 + shard.depth * 0.62;
+        context.save();
+        context.translate(x, y);
+        context.rotate(shard.rotation + wave * 0.45);
+        context.scale(1, shard.stretch);
+        const shardGradient = context.createLinearGradient(-size, -size, size, size);
+        if (shard.hue > 0.7) {
+          shardGradient.addColorStop(0, `rgba(255, 107, 53, ${alpha})`);
+          shardGradient.addColorStop(1, `rgba(245, 208, 111, ${alpha * 0.3})`);
+        } else {
+          shardGradient.addColorStop(0, `rgba(127, 231, 255, ${alpha})`);
+          shardGradient.addColorStop(1, `rgba(63, 179, 212, ${alpha * 0.2})`);
+        }
+        context.fillStyle = shardGradient;
+        context.shadowBlur = 12 * shard.depth;
+        context.shadowColor = shard.hue > 0.7 ? 'rgba(255, 107, 53, 0.42)' : 'rgba(127, 231, 255, 0.48)';
+        context.beginPath();
+        context.moveTo(0, -size);
+        context.lineTo(size * 0.62, 0);
+        context.lineTo(0, size);
+        context.lineTo(-size * 0.62, 0);
+        context.closePath();
+        context.fill();
+        context.restore();
+      });
+
+      frameId = window.requestAnimationFrame(draw);
+    };
+
+    root.addEventListener('pointermove', (event) => {
+      const bounds = root.getBoundingClientRect();
+      pointer.x = (event.clientX - bounds.left) / bounds.width;
+      pointer.y = (event.clientY - bounds.top) / bounds.height;
+      pointer.active = true;
+    }, { passive: true });
+    root.addEventListener('pointerleave', () => {
+      pointer.active = false;
+    }, { passive: true });
+    window.addEventListener('resize', resize, { passive: true });
+    resize();
+    frameId = window.requestAnimationFrame(draw);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', resize);
+    };
+  };
+
+  initAeroShards(aeroCanvas, featuredHero);
 
   const setFeaturedMovie = (movie) => {
     if (!movie || !heroTitle || !heroTagline || !heroMeta || !heroPoster || !heroBg) return;
@@ -372,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
       heroTagline.textContent = tagline;
       heroPoster.src = poster;
       heroPoster.alt = title;
-      heroBg.style.backgroundImage = `url('${poster}')`;
+      heroBg.style.backgroundImage = 'none';
 
       const metaHtml = [
         `<span class="meta-chip meta-chip--rating">★ ${rating}</span>`,
@@ -395,6 +521,11 @@ document.addEventListener('DOMContentLoaded', () => {
         heroActionsInfo.href = `watch.php?id=${id}#movieInfo`;
       }
 
+      replayAnimation(heroBg, 'animate__fadeIn');
+      replayAnimation(heroTitle, 'animate__fadeInDown');
+      replayAnimation(heroPoster, 'animate__zoomIn');
+      replayAnimation(heroMeta, 'animate__fadeInUp');
+
       requestAnimationFrame(() => {
         heroTitle.style.opacity = '1';
         heroTitle.style.transform = 'translateY(0)';
@@ -412,22 +543,106 @@ document.addEventListener('DOMContentLoaded', () => {
     window.setTimeout(fadeIn, 140);
   };
 
-  document.querySelectorAll('.hero__mini-card').forEach((card) => {
+  const activateHeroCard = (card) => {
+    if (!card) return;
+    heroMiniCards.forEach((miniCard) => miniCard.classList.remove('is-selected'));
+    card.classList.add('is-selected');
+    replayAnimation(card, 'animate__tada');
+
+    setFeaturedMovie({
+      id: Number(card.dataset.id || 0),
+      title: card.dataset.title || '',
+      tagline: card.dataset.tagline || '',
+      genre: card.dataset.genre || '',
+      poster: card.dataset.poster || '',
+      year: card.dataset.year || '',
+      duration: card.dataset.duration || '',
+      rating: card.dataset.rating || '9.0'
+    });
+  };
+
+  heroMiniCards.forEach((card) => {
     card.addEventListener('click', (event) => {
       event.preventDefault();
-      const movie = {
-        id: Number(card.dataset.id || 0),
-        title: card.dataset.title || '',
-        tagline: card.dataset.tagline || '',
-        genre: card.dataset.genre || '',
-        poster: card.dataset.poster || '',
-        year: card.dataset.year || '',
-        duration: card.dataset.duration || '',
-        rating: card.dataset.rating || '9.0'
-      };
-      setFeaturedMovie(movie);
+      if (blockHeroRailClick) return;
+      activateHeroCard(card);
     });
   });
+
+  if (heroDragSurface && heroMiniCards.length > 1) {
+    const resetHeroRailDrag = () => {
+      heroDragSurface.classList.remove('is-dragging', 'is-pressed');
+      heroDragSurface.style.setProperty('--hero-drag-offset', '0px');
+      isDraggingHeroRail = false;
+      heroDragOffset = 0;
+    };
+
+    heroDragSurface.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (event.target.closest('a, button, input, textarea, select')) return;
+      event.preventDefault();
+      heroRailPointerId = event.pointerId;
+      heroDragStartX = event.clientX;
+      heroDragOffset = 0;
+      isDraggingHeroRail = false;
+      heroDragSurface.classList.add('is-pressed');
+      heroDragSurface.setPointerCapture?.(event.pointerId);
+    });
+
+    heroDragSurface.addEventListener('pointermove', (event) => {
+      if (event.pointerId !== heroRailPointerId) return;
+      heroDragOffset = event.clientX - heroDragStartX;
+      if (Math.abs(heroDragOffset) < 8 && !isDraggingHeroRail) return;
+
+      isDraggingHeroRail = true;
+      heroDragSurface.classList.add('is-dragging');
+      const elasticOffset = Math.max(-72, Math.min(72, heroDragOffset * 0.42));
+      heroDragSurface.style.setProperty('--hero-drag-offset', `${elasticOffset}px`);
+
+      const swipeThreshold = Math.max(56, Math.min(110, heroDragSurface.clientWidth * 0.08));
+      if (Math.abs(heroDragOffset) >= swipeThreshold) {
+        const currentIndex = [...heroMiniCards].findIndex((card) => card.classList.contains('is-selected'));
+        const fallbackIndex = currentIndex >= 0 ? currentIndex : 0;
+        const direction = heroDragOffset < 0 ? 1 : -1;
+        const nextIndex = (fallbackIndex + direction + heroMiniCards.length) % heroMiniCards.length;
+
+        blockHeroRailClick = true;
+        activateHeroCard(heroMiniCards[nextIndex]);
+        window.setTimeout(() => {
+          blockHeroRailClick = false;
+        }, 280);
+
+        heroDragStartX = event.clientX;
+        heroDragOffset = 0;
+        isDraggingHeroRail = false;
+        heroDragSurface.classList.remove('is-dragging');
+        heroDragSurface.style.setProperty('--hero-drag-offset', '0px');
+      }
+    });
+
+    const finishHeroRailDrag = (event) => {
+      if (event.pointerId !== heroRailPointerId) return;
+
+      if (isDraggingHeroRail) {
+        const currentIndex = [...heroMiniCards].findIndex((card) => card.classList.contains('is-selected'));
+        const fallbackIndex = currentIndex >= 0 ? currentIndex : 0;
+        const direction = heroDragOffset < 0 ? 1 : -1;
+        const nextIndex = (fallbackIndex + direction + heroMiniCards.length) % heroMiniCards.length;
+        blockHeroRailClick = true;
+        activateHeroCard(heroMiniCards[nextIndex]);
+        window.setTimeout(() => {
+          blockHeroRailClick = false;
+        }, 280);
+      }
+
+      heroDragSurface.releasePointerCapture?.(event.pointerId);
+      heroRailPointerId = null;
+      resetHeroRailDrag();
+    };
+
+    heroDragSurface.addEventListener('pointerup', finishHeroRailDrag);
+    heroDragSurface.addEventListener('pointercancel', finishHeroRailDrag);
+  }
 
   /* ---------- Watch page: real playback controls ---------- */
   const playBtn = document.getElementById('playBtn');

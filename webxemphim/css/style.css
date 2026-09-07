@@ -611,15 +611,46 @@ h4 {
   justify-content: center;
   overflow: hidden;
   padding: 44px 0 54px;
+  cursor: grab;
+  touch-action: pan-y;
+  --hero-drag-offset: 0px;
+}
+.hero.is-pressed,
+.hero.is-dragging {
+  cursor: grabbing;
+}
+.hero.is-dragging .hero__poster-wrap {
+  transform: translate3d(calc(var(--hero-drag-offset) * 0.16), 0, 0) scale(1.012);
+  transition: none;
+}
+.hero.is-dragging .hero__content {
+  transform: translate3d(calc(var(--hero-drag-offset) * 0.06), 0, 0);
+  transition: none;
 }
 .hero__bg {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
-  filter: saturate(0.9) brightness(0.28) sepia(0.25) hue-rotate(-18deg)
-    blur(2.5px);
-  transform: scale(1.05);
+  background: #030a11;
+}
+.hero__aero-shards {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  opacity: 0.92;
+  mix-blend-mode: screen;
+}
+.hero__glow-cursor {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  mix-blend-mode: screen;
 }
 .hero__scrim {
   position: absolute;
@@ -697,6 +728,8 @@ h4 {
   min-height: 320px;
   object-fit: cover;
   display: block;
+  pointer-events: none;
+  user-select: none;
   filter: saturate(1.1) brightness(0.96) contrast(1.08);
   transform: scale(1.02);
   transition:
@@ -769,6 +802,21 @@ h4 {
   background: rgba(5, 12, 18, 0.7);
   backdrop-filter: blur(10px);
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.28);
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  --drag-offset: 0px;
+}
+.hero__rail:active,
+.hero__rail.is-pressed,
+.hero__rail.is-dragging {
+  cursor: grabbing;
+}
+.hero__rail.is-dragging {
+  border-color: rgba(127, 231, 255, 0.42);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.34),
+    0 0 24px rgba(127, 231, 255, 0.16);
 }
 .hero__mini-card {
   width: 72px;
@@ -783,10 +831,27 @@ h4 {
   background: transparent;
   padding: 0;
   cursor: pointer;
+  will-change: transform;
+}
+.hero__rail.is-dragging .hero__mini-card {
+  transform: translate3d(var(--drag-offset), 0, 0) scale(0.98);
+  transition: none;
+}
+.hero__rail.is-dragging .hero__mini-card:nth-child(2n) {
+  transition-delay: 18ms;
+}
+.hero__rail.is-dragging .hero__mini-card:nth-child(3n) {
+  transition-delay: 34ms;
 }
 .hero__mini-card:hover {
   transform: translateY(-6px);
   border-color: rgba(197, 29, 38, 0.45);
+}
+.hero__mini-card.is-selected {
+  border-color: var(--cyan);
+  box-shadow:
+    0 0 0 2px rgba(127, 231, 255, 0.16),
+    0 12px 28px rgba(127, 231, 255, 0.28);
 }
 .hero__mini-card:focus-visible {
   outline: 2px solid rgba(127, 231, 255, 0.8);
@@ -845,6 +910,22 @@ h4 {
   transition:
     opacity 0.35s ease,
     transform 0.35s ease;
+}
+.warp-text {
+  position: relative;
+  width: 100%;
+  max-width: 470px;
+  height: 150px;
+  overflow: hidden;
+  isolation: isolate;
+  margin-bottom: 18px;
+}
+.warp-text canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .hero__tagline {
