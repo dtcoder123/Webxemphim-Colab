@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 08, 2026 at 08:03 AM
+-- Generation Time: Sep 08, 2026 at 08:46 AM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.33
 
@@ -81,7 +81,22 @@ CREATE TABLE `movie_comments` (
 
 INSERT INTO `movie_comments` (`id`, `movie_id`, `user_id`, `rating`, `comment`, `created_at`) VALUES
 (2, 5, 3, 5, 'Phim hay như cách CR7 có world cup', '2026-09-05 07:04:44'),
-(3, 7, 2, 5, 'Đùa phim ơi', '2026-09-05 07:30:13');
+(3, 7, 2, 5, 'Đùa phim ơi', '2026-09-05 07:30:13'),
+(5, 4, 2, 5, 'abc', '2026-09-08 08:10:58');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `token_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -107,7 +122,28 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `email`, `username`, `password`, `role`, `status`, `created_at`, `updated_at`) VALUES
 (1, 'admin@gmail.com', 'admin', '$2y$10$sZ4ix8Mlbeva7XYVKF2lceKaOvzoLbenQkds1Ip09iD0/lMYw2gCK', 'admin', 1, '2026-08-30 17:42:12', '2026-08-30 17:42:12'),
 (2, 'phong@gmail.com', 'TanL', '$2y$10$OM5OmRzDc5bbXO6q0wbx8.eXL88rwabMFs9LbWP2FUWwlMcAZXF9e', 'member', 1, '2026-08-30 17:44:42', '2026-08-30 17:44:42'),
-(3, 'thanh@gmail.com', 'ThanhL', '$2y$10$LtoZgFOwZlOhJ.bfkHy0c.HKfZN3MaujrXMaLXsRLgFYVs5.uiJ6m', 'member', 1, '2026-09-05 07:03:15', '2026-09-05 07:03:15');
+(3, 'thanh@gmail.com', 'ThanhL', '$2y$10$LtoZgFOwZlOhJ.bfkHy0c.HKfZN3MaujrXMaLXsRLgFYVs5.uiJ6m', 'member', 1, '2026-09-05 07:03:15', '2026-09-05 07:03:15'),
+(4, 'newtan@gmail.com', 'Dut', '$2y$10$5ePw7oztJkXVim3Dc8u/uuDMorKeEKoDp8ZX5.yd8xN/NlECjaVMq', 'member', 1, '2026-09-08 08:23:10', '2026-09-08 08:23:10');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_favorites`
+--
+
+CREATE TABLE `user_favorites` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `movie_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `user_favorites`
+--
+
+INSERT INTO `user_favorites` (`id`, `user_id`, `movie_id`, `created_at`) VALUES
+(3, 2, 8, '2026-09-08 08:43:28');
 
 -- --------------------------------------------------------
 
@@ -128,13 +164,14 @@ CREATE TABLE `watch_history` (
 
 INSERT INTO `watch_history` (`id`, `user_id`, `movie_id`, `watched_at`) VALUES
 (1, 1, 5, '2026-09-08 05:47:22'),
-(2, 1, 7, '2026-09-08 05:47:01'),
-(4, 2, 7, '2026-09-08 05:49:34'),
+(2, 1, 7, '2026-09-08 08:42:03'),
+(4, 2, 7, '2026-09-08 08:14:52'),
 (7, 2, 5, '2026-09-07 12:50:46'),
 (10, 1, 2, '2026-09-07 12:58:01'),
 (14, 1, 4, '2026-09-08 05:33:14'),
-(20, 1, 8, '2026-09-08 05:45:20'),
-(25, 2, 8, '2026-09-08 06:50:27');
+(20, 1, 8, '2026-09-08 08:35:13'),
+(25, 2, 8, '2026-09-08 08:43:23'),
+(32, 2, 4, '2026-09-08 08:10:58');
 
 --
 -- Indexes for dumped tables
@@ -155,12 +192,29 @@ ALTER TABLE `movie_comments`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indexes for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token_hash` (`token_hash`),
+  ADD KEY `idx_password_resets_user` (`user_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`),
   ADD UNIQUE KEY `username` (`username`);
+
+--
+-- Indexes for table `user_favorites`
+--
+ALTER TABLE `user_favorites`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_user_fav` (`user_id`,`movie_id`),
+  ADD KEY `idx_fav_user` (`user_id`),
+  ADD KEY `fk_fav_movie` (`movie_id`);
 
 --
 -- Indexes for table `watch_history`
@@ -185,23 +239,48 @@ ALTER TABLE `movies`
 -- AUTO_INCREMENT for table `movie_comments`
 --
 ALTER TABLE `movie_comments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `user_favorites`
+--
+ALTER TABLE `user_favorites`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `watch_history`
 --
 ALTER TABLE `watch_history`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD CONSTRAINT `fk_password_resets_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_favorites`
+--
+ALTER TABLE `user_favorites`
+  ADD CONSTRAINT `fk_fav_movie` FOREIGN KEY (`movie_id`) REFERENCES `movies` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_fav_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `watch_history`
