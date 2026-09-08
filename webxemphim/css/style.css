@@ -1044,6 +1044,22 @@ h4 {
 .btn-hud--ghost:hover {
   background: rgba(127, 231, 255, 0.1);
 }
+.btn-hud--favorited {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.22) 0%, rgba(0, 168, 204, 0.45) 100%);
+  color: #00f0ff;
+  border-color: #00f0ff;
+  box-shadow:
+    0 0 16px rgba(0, 240, 255, 0.35),
+    inset 0 0 12px rgba(0, 240, 255, 0.2);
+}
+.btn-hud--favorited:hover {
+  background: linear-gradient(135deg, rgba(255, 77, 0, 0.25) 0%, rgba(197, 29, 38, 0.45) 100%);
+  color: #ff8866;
+  border-color: #ff4d00;
+  box-shadow:
+    0 0 18px rgba(255, 77, 0, 0.4),
+    inset 0 0 10px rgba(255, 77, 0, 0.2);
+}
 .btn-hud--wide {
   padding-left: 30px;
   padding-right: 30px;
@@ -1051,6 +1067,80 @@ h4 {
 .btn-hud__icon {
   font-size: 12px;
 }
+
+/* Nút xóa nhanh khỏi yêu thích trên Card */
+.favorite-remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 77, 0, 0.6);
+  background: rgba(13, 21, 31, 0.85);
+  color: #ff4d00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+.favorite-remove-btn:hover {
+  background: #ff4d00;
+  color: #fff;
+  border-color: #ff4d00;
+  box-shadow: 0 0 12px rgba(255, 77, 0, 0.6);
+  transform: scale(1.1);
+}
+
+/* Thông báo HUD Toast */
+.hud-toast-container {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.hud-toast {
+  pointer-events: auto;
+  padding: 12px 20px;
+  background: rgba(10, 18, 28, 0.95);
+  border: 1px solid var(--cyan);
+  border-radius: 8px;
+  color: #d7f4fb;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 240, 255, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: hudToastIn 0.3s ease-out forwards;
+  backdrop-filter: blur(8px);
+}
+.hud-toast--warning {
+  border-color: var(--orange);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 16px rgba(255, 77, 0, 0.3);
+}
+.hud-toast.is-hiding {
+  animation: hudToastOut 0.3s ease-in forwards;
+}
+@keyframes hudToastIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes hudToastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(40px); }
+}
+
 
 /* =========================================================
    FILTER TABS

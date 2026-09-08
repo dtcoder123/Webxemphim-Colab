@@ -102,6 +102,17 @@ $historyStmt->execute([
   ':movie_id' => $id,
 ]);
 
+// Kiểm tra trạng thái yêu thích của người dùng đối với phim này
+$isFavorited = false;
+if (!empty($_SESSION['user_id'])) {
+  $favCheck = $pdo->prepare('SELECT 1 FROM user_favorites WHERE user_id = :user_id AND movie_id = :movie_id LIMIT 1');
+  $favCheck->execute([
+    ':user_id' => (int)$_SESSION['user_id'],
+    ':movie_id' => $id,
+  ]);
+  $isFavorited = (bool)$favCheck->fetchColumn();
+}
+
 $movie['cast'] = normalizeMovieCast($movie['cast'] ?? []);
 $movie['video_url'] = trim((string)($movie['video_url'] ?? $movie['trailer_url'] ?? ''));
 if ($movie['video_url'] === '') {
@@ -244,9 +255,10 @@ include 'includes/header.php';
         </div>
 
         <div class="hero__actions">
-
-
-          <button class="btn-hud btn-hud--primary">☆ THÊM VÀO DANH SÁCH</button>
+          <button type="button" id="btnFavorite" class="btn-hud <?php echo $isFavorited ? 'btn-hud--favorited' : 'btn-hud--primary'; ?>" data-movie-id="<?php echo (int)$movie['id']; ?>">
+            <span class="btn-fav-icon"><?php echo $isFavorited ? '★' : '☆'; ?></span>
+            <span class="btn-fav-text"><?php echo $isFavorited ? 'ĐÃ THÊM VÀO DANH SÁCH' : 'THÊM VÀO DANH SÁCH'; ?></span>
+          </button>
           <button class="btn-hud btn-hud--ghost">⬇ TẢI XUỐNG</button>
         </div>
       </div>
@@ -379,4 +391,79 @@ include 'includes/header.php';
   </section>
 </main>
 
-<?php include 'includes/footer.php'; ?>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const btnFavorite = document.getElementById('btnFavorite');
+  if (!btnFavorite) return;
+
+  const showToast = (message, isWarning = false) => {
+    let container = document.querySelector('.hud-toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'hud-toast-container';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = 'hud-toast' + (isWarning ? ' hud-toast--warning' : '');
+    toast.innerHTML = `
+      <span style="font-size: 16px; color: ${isWarning ? '#ff4d00' : '#00f0ff'};">✦</span>
+      <span>${message}</span>
+    `;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('is-hiding');
+      setTimeout(() => toast.remove(), 300);
+    }, 2500);
+  };
+
+  btnFavorite.addEventListener('click', async () => {
+    const movieId = btnFavorite.getAttribute('data-movie-id');
+    if (!movieId) return;
+
+    btnFavorite.disabled = true;
+    try {
+      const res = await fetch('api/toggle_favorite.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ movie_id: parseInt(movieId, 10) })
+      });
+
+      const data = await res.json();
+
+      if (res.status === 401) {
+        showToast(data.message || 'Vui lòng đăng nhập để lưu phim yêu thích.', true);
+        setTimeout(() => { window.location.href = 'login.php'; }, 1200);
+        return;
+      }
+
+      if (data.success) {
+        const iconEl = btnFavorite.querySelector('.btn-fav-icon');
+        const textEl = btnFavorite.querySelector('.btn-fav-text');
+
+        if (data.favorited) {
+          btnFavorite.classList.remove('btn-hud--primary');
+          btnFavorite.classList.add('btn-hud--favorited');
+          if (iconEl) iconEl.textContent = '★';
+          if (textEl) textEl.textContent = 'ĐÃ THÊM VÀO DANH SÁCH';
+          showToast(data.message || 'Đã thêm vào danh sách yêu thích!');
+        } else {
+          btnFavorite.classList.remove('btn-hud--favorited');
+          btnFavorite.classList.add('btn-hud--primary');
+          if (iconEl) iconEl.textContent = '☆';
+          if (textEl) textEl.textContent = 'THÊM VÀO DANH SÁCH';
+          showToast(data.message || 'Đã xóa khỏi danh sách yêu thích.', true);
+        }
+      } else {
+        showToast(data.message || 'Có lỗi xảy ra, vui lòng thử lại.', true);
+      }
+    } catch (err) {
+      showToast('Lỗi kết nối máy chủ STARK-SYS.', true);
+    } finally {
+      btnFavorite.disabled = false;
+    }
+  });
+});
+</script>
+
+<?php include 'includes/footer.php'; ?>

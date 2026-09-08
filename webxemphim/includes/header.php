@@ -72,15 +72,18 @@ $isLoggedIn = !empty($_SESSION['user_logged_in']);
       </span>
     </a>
 
+    <?php $currentNavPage = basename($_SERVER['PHP_SELF']); ?>
     <nav class="main-nav" id="mainNav">
-      <a href="index.php" class="main-nav__link is-active">TRANG CHỦ</a>
+      <a href="index.php" class="main-nav__link <?php echo $currentNavPage === 'index.php' ? 'is-active' : ''; ?>">TRANG CHỦ</a>
       <a href="index.php#featured" class="main-nav__link">PHIM ĐỀ CỬ</a>
       <a href="index.php#grid" class="main-nav__link">KHO DỮ LIỆU</a>
       <a href="index.php#grid" class="main-nav__link">THỂ LOẠI</a>
       <?php if ($isLoggedIn): ?>
-        <a href="history.php" class="main-nav__link">LỊCH SỬ</a>
+        <a href="history.php" class="main-nav__link <?php echo $currentNavPage === 'history.php' ? 'is-active' : ''; ?>">LỊCH SỬ</a>
+        <a href="favorites.php" class="main-nav__link <?php echo $currentNavPage === 'favorites.php' ? 'is-active' : ''; ?>">YÊU THÍCH</a>
       <?php else: ?>
         <a href="login.php" class="main-nav__link">LỊCH SỬ</a>
+        <a href="login.php" class="main-nav__link">YÊU THÍCH</a>
       <?php endif; ?>
     </nav>
 
