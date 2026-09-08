@@ -85,6 +85,9 @@
 
 <script src="js/main.js?v=20260908-genre-dropdown-v2"></script>
 <script src="js/glow-cursor.js?v=20260908-genre-dropdown-v2"></script>
+<?php if (in_array($pageTitle ?? '', ['Đăng nhập', 'Đăng ký'], true)): ?>
+<script src="js/auth-drift-wall.js?v=20260908-drift-wall"></script>
+<?php endif; ?>
 </body>
 
 </html>

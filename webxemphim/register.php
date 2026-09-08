@@ -56,8 +56,9 @@ $pageTitle = 'Đăng ký';
 include 'includes/header.php';
 ?>
 
-<main class="container" style="padding: 80px 0;">
-  <div class="hud-panel" style="max-width: 480px; margin: 0 auto; padding: 32px;">
+<main class="container auth-page">
+  <div class="auth-drift-wall" data-auth-drift-wall aria-hidden="true"></div>
+  <div class="hud-panel auth-form-panel" style="max-width: 480px; margin: 0 auto; padding: 32px;">
     <div class="hud-corner hud-corner--tl"></div>
     <div class="hud-corner hud-corner--br"></div>
 
