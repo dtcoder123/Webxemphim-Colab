@@ -15,8 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
 
-    if ($email === '' || $username === '' || $password === '') {
+    if ($email === '' || $username === '' || $password === '' || $confirmPassword === '') {
         $error = 'Vui lòng điền đầy đủ thông tin.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Email không hợp lệ.';
@@ -24,6 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Tên đăng nhập phải từ 3 đến 50 ký tự.';
     } elseif (strlen($password) < 6) {
         $error = 'Mật khẩu phải có ít nhất 6 ký tự.';
+    } elseif ($password !== $confirmPassword) {
+      $error = 'Mật khẩu xác nhận không khớp.';
     } else {
         $check = $pdo->prepare('SELECT id FROM users WHERE email = :email OR username = :username LIMIT 1');
         $check->execute([':email' => $email, ':username' => $username]);
@@ -80,6 +83,11 @@ include 'includes/header.php';
       <label style="display: grid; gap: 8px; font-family: 'Rajdhani', sans-serif; letter-spacing: 0.05em; color: #7fa8b8;">
         Mật khẩu
         <input type="password" name="password" value="" style="background: rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.2); color: #d7f4fb; padding: 12px 14px; font-size: 16px;" required>
+      </label>
+
+      <label style="display: grid; gap: 8px; font-family: 'Rajdhani', sans-serif; letter-spacing: 0.05em; color: #7fa8b8;">
+        Xác nhận mật khẩu
+        <input type="password" name="confirm_password" value="" style="background: rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.2); color: #d7f4fb; padding: 12px 14px; font-size: 16px;" required>
       </label>
 
       <button type="submit" class="btn-hud btn-hud--primary" style="justify-content: center; width: 100%;">

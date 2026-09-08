@@ -77,6 +77,8 @@ include 'includes/header.php';
       <button type="submit" class="btn-hud btn-hud--primary" style="justify-content: center; width: 100%;">
         <span class="btn-hud__icon">▶</span> XÁC NHẬN
       </button>
+
+      <a href="forgot_password.php" style="text-align: center; color: #7fa8b8; font-family: 'Rajdhani', sans-serif;">QUÊN MẬT KHẨU?</a>
     </form>
   </div>
 </main>
