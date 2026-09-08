@@ -7,11 +7,12 @@ $pageTitle = 'Trang chủ';
 
 require_once __DIR__ . '/includes/db.php';
 
-$genreRows = $pdo->query('SELECT DISTINCT genre FROM movies WHERE status = 1 ORDER BY genre ASC')->fetchAll(PDO::FETCH_COLUMN);
-$genres = ['Tất cả'];
-foreach ($genreRows as $genre) {
-    $genres[] = $genre;
+$genres = array_merge(['Tất cả'], getWebsiteGenres($pdo));
+$activeGenre = trim($_GET['genre'] ?? 'Tất cả');
+if (!in_array($activeGenre, $genres, true)) {
+    $activeGenre = 'Tất cả';
 }
+
 
 $featured = $pdo->query('SELECT * FROM movies WHERE featured = 1 AND status = 1 ORDER BY id DESC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
 if (!$featured) {
@@ -136,8 +137,8 @@ window.movieCatalog = <?php echo json_encode($movieCatalog, JSON_UNESCAPED_UNICO
       <span class="filters__label-dash"></span> BỘ LỌC DỮ LIỆU
     </div>
     <div class="filter-tabs" id="filterTabs">
-      <?php foreach ($genres as $i => $g): ?>
-        <button class="filter-tab <?php echo $i === 0 ? 'is-active' : ''; ?>" data-genre="<?php echo htmlspecialchars($g); ?>">
+      <?php foreach ($genres as $g): ?>
+        <button class="filter-tab <?php echo mb_strtolower($g) === mb_strtolower($activeGenre) ? 'is-active' : ''; ?>" data-genre="<?php echo htmlspecialchars($g); ?>">
           <?php echo htmlspecialchars($g); ?>
         </button>
       <?php endforeach; ?>

@@ -373,6 +373,103 @@ h4 {
   text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
 }
 
+/* =========================================================
+   NAV DROPDOWN (THỂ LOẠI)
+   ========================================================= */
+.nav-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+#genreNavBtn {
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+.genre-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  width: 320px;
+  max-width: 92vw;
+  background: rgba(8, 14, 23, 0.98);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.75),
+    0 0 24px rgba(0, 240, 255, 0.2);
+  backdrop-filter: blur(16px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 9999;
+}
+
+.nav-dropdown.is-open .genre-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.genre-dropdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyan) transparent;
+}
+
+.genre-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  background: rgba(0, 240, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 6px;
+  color: #c9e4ed;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.genre-item:hover {
+  background: rgba(0, 240, 255, 0.16);
+  border-color: #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.genre-item--all {
+  grid-column: span 2;
+  background: rgba(0, 240, 255, 0.09);
+  border-color: rgba(0, 240, 255, 0.3);
+  color: #00f0ff;
+  font-weight: 700;
+}
+
+.genre-item--all:hover {
+  background: rgba(0, 240, 255, 0.22);
+  border-color: #00f0ff;
+}
+
 .header-actions {
   display: flex;
   align-items: center;

@@ -297,8 +297,99 @@ document.addEventListener('DOMContentLoaded', () => {
     hideSearchSuggestions();
   }
 
+  /* ---------- Genre Dropdown (THỂ LOẠI) ---------- */
+  const genreNavDropdown = document.getElementById('genreNavDropdown');
+  const genreNavBtn = document.getElementById('genreNavBtn') || document.getElementById('genreDropdownBtn');
+  const genreDropdownMenu = document.getElementById('genreDropdownMenu');
+
+  if (genreNavDropdown && genreNavBtn) {
+    const toggleGenreDropdown = (show) => {
+      const willOpen = typeof show === 'boolean' ? show : !genreNavDropdown.classList.contains('is-open');
+      genreNavDropdown.classList.toggle('is-open', willOpen);
+      genreNavBtn.classList.toggle('is-active', willOpen);
+      genreNavBtn.setAttribute('aria-expanded', String(willOpen));
+    };
+
+    genreNavBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleGenreDropdown();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!genreNavDropdown.contains(e.target)) {
+        toggleGenreDropdown(false);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        toggleGenreDropdown(false);
+      }
+    });
+
+    const genreItems = genreNavDropdown.querySelectorAll('.genre-item, .nav-dropdown__item');
+    genreItems.forEach((item) => {
+      item.addEventListener('click', (e) => {
+        const genre = item.dataset.genre || 'Tất cả';
+        const isHomePage = window.location.pathname.endsWith('index.php') || 
+                           window.location.pathname === '/' || 
+                           window.location.pathname.endsWith('/webxemphim/') || 
+                           window.location.pathname.endsWith('/webxemphim/index.php') ||
+                           Boolean(document.getElementById('movieGrid'));
+
+        if (isHomePage) {
+          e.preventDefault();
+          toggleGenreDropdown(false);
+
+          if (filterTabs && movieGrid) {
+            const tabs = filterTabs.querySelectorAll('.filter-tab');
+            let matched = false;
+            tabs.forEach((tab) => {
+              const tabGenre = tab.dataset.genre || '';
+              if (normalizeFilterText(tabGenre) === normalizeFilterText(genre) || 
+                  (genre === 'Tất cả' && (tabGenre === 'Tất cả' || tabGenre === 'ALL'))) {
+                tabs.forEach((t) => t.classList.remove('is-active'));
+                tab.classList.add('is-active');
+                matched = true;
+              }
+            });
+
+            if (!matched && tabs.length > 0) {
+              tabs.forEach((t) => t.classList.remove('is-active'));
+            }
+
+            applyMovieFilters();
+
+            const gridSection = document.getElementById('grid');
+            if (gridSection) {
+              gridSection.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            try {
+              history.pushState(null, '', 'index.php?genre=' + encodeURIComponent(genre) + '#grid');
+            } catch (err) {}
+          }
+        }
+      });
+    });
+  }
+
   if (filterTabs && movieGrid) {
     const tabs = filterTabs.querySelectorAll('.filter-tab');
+
+    // Kiểm tra tham số ?genre=... từ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialGenre = urlParams.get('genre');
+    if (initialGenre) {
+      tabs.forEach((tab) => {
+        if (normalizeFilterText(tab.dataset.genre || '') === normalizeFilterText(initialGenre) ||
+            (initialGenre === 'Tất cả' && (tab.dataset.genre === 'Tất cả' || tab.dataset.genre === 'ALL'))) {
+          tabs.forEach((t) => t.classList.remove('is-active'));
+          tab.classList.add('is-active');
+        }
+      });
+    }
 
     tabs.forEach((tab) => {
       tab.addEventListener('click', () => {
@@ -309,6 +400,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     applyMovieFilters();
+
+    if (initialGenre || window.location.hash === '#grid') {
+      setTimeout(() => {
+        const gridSection = document.getElementById('grid');
+        if (gridSection) gridSection.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    }
   }
 
   movieGrid?.querySelectorAll('.movie-shelf__next').forEach((button) => {

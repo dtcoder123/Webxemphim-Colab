@@ -26,6 +26,37 @@ function normalizeMovieCast($value): array
     return [];
 }
 
+function getWebsiteGenres(PDO $pdo): array
+{
+    try {
+        $stmt = $pdo->query("SELECT name FROM genres ORDER BY name ASC");
+        $genres = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        if (!empty($genres)) {
+            return $genres;
+        }
+    } catch (Exception $e) {
+    }
+
+    try {
+        $raw = $pdo->query("SELECT DISTINCT genre FROM movies WHERE status = 1 ORDER BY genre ASC")->fetchAll(PDO::FETCH_COLUMN);
+        $results = [];
+        foreach ($raw as $val) {
+            $parts = preg_split('/\s*[\/,]\s*/', (string)$val);
+            foreach ($parts as $p) {
+                $p = trim($p);
+                if ($p !== '' && !in_array($p, $results, true)) {
+                    $results[] = $p;
+                }
+            }
+        }
+        sort($results);
+        return !empty($results) ? $results : ['Hành Động', 'Khoa Học Viễn Tưởng', 'Kinh Dị', 'Hoạt Hình'];
+    } catch (Exception $e) {
+        return ['Hành Động', 'Khoa Học Viễn Tưởng', 'Kinh Dị', 'Hoạt Hình'];
+    }
+}
+
+
 $host = '127.0.0.1';
 $port = '3306';
 $dbName = 'webxemphim';
@@ -117,6 +148,35 @@ try {
         CONSTRAINT fk_fav_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         CONSTRAINT fk_fav_movie FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS genres (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    // Khởi tạo các thể loại mặc định nếu bảng genres còn trống
+    $genreCount = (int) $pdo->query('SELECT COUNT(*) FROM genres')->fetchColumn();
+    if ($genreCount === 0) {
+        $defaultGenres = ['Hành Động', 'Khoa Học Viễn Tưởng', 'Kinh Dị', 'Hoạt Hình', 'Tình Cảm', 'Hài Hước', 'Phiêu Lưu', 'Tâm Lý'];
+        try {
+            $movieGenres = $pdo->query('SELECT DISTINCT genre FROM movies WHERE status = 1')->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($movieGenres as $mg) {
+                $parts = preg_split('/\s*[\/,]\s*/', (string)$mg);
+                foreach ($parts as $p) {
+                    $p = trim($p);
+                    if ($p !== '' && !in_array($p, $defaultGenres, true)) {
+                        $defaultGenres[] = $p;
+                    }
+                }
+            }
+        } catch (Exception $e) {}
+
+        $insGenre = $pdo->prepare('INSERT IGNORE INTO genres (name) VALUES (:name)');
+        foreach ($defaultGenres as $gName) {
+            $insGenre->execute([':name' => $gName]);
+        }
+    }
 
     $adminCheck = $pdo->prepare('SELECT id FROM users WHERE email = :email OR username = :username LIMIT 1');
     $adminCheck->execute([

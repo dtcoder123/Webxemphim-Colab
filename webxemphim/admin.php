@@ -62,6 +62,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([':id' => $id]);
             $message = 'Xóa phim thành công.';
         }
+    } elseif ($action === 'add_genre') {
+        $genreName = trim($_POST['genre_name'] ?? '');
+        if ($genreName !== '') {
+            $chk = $pdo->prepare('SELECT id FROM genres WHERE name = :name LIMIT 1');
+            $chk->execute([':name' => $genreName]);
+            if ($chk->fetch()) {
+                $message = 'Thể loại "' . htmlspecialchars($genreName) . '" đã tồn tại.';
+            } else {
+                $ins = $pdo->prepare('INSERT INTO genres (name) VALUES (:name)');
+                $ins->execute([':name' => $genreName]);
+                $message = 'Thêm thể loại "' . htmlspecialchars($genreName) . '" thành công.';
+            }
+        } else {
+            $message = 'Tên thể loại không được để trống.';
+        }
+    } elseif ($action === 'edit_genre') {
+        $genreId = (int)($_POST['genre_id'] ?? 0);
+        $newGenreName = trim($_POST['new_genre_name'] ?? '');
+        $oldGenreName = trim($_POST['old_genre_name'] ?? '');
+        if ($genreId > 0 && $newGenreName !== '') {
+            $upd = $pdo->prepare('UPDATE genres SET name = :name WHERE id = :id');
+            $upd->execute([':name' => $newGenreName, ':id' => $genreId]);
+
+            if ($oldGenreName !== '') {
+                $updMovies = $pdo->prepare('UPDATE movies SET genre = :new_name WHERE genre = :old_name');
+                $updMovies->execute([':new_name' => $newGenreName, ':old_name' => $oldGenreName]);
+            }
+            $message = 'Đổi tên thể loại thành "' . htmlspecialchars($newGenreName) . '" thành công.';
+        }
+    } elseif ($action === 'delete_genre') {
+        $genreId = (int)($_POST['genre_id'] ?? 0);
+        if ($genreId > 0) {
+            $del = $pdo->prepare('DELETE FROM genres WHERE id = :id');
+            $del->execute([':id' => $genreId]);
+            $message = 'Đã xóa thể loại khỏi danh sách.';
+        }
     } else {
         $title = trim($_POST['title'] ?? '');
         $genre = trim($_POST['genre'] ?? '');
@@ -123,6 +159,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 $message = 'Thêm phim thành công.';
             }
+
+            // Tự động lưu thể loại mới vào bảng genres nếu chưa tồn tại
+            if ($genre !== '') {
+                $genreParts = preg_split('/\s*[\/,]\s*/', $genre);
+                foreach ($genreParts as $gp) {
+                    $gp = trim($gp);
+                    if ($gp !== '') {
+                        $pdo->prepare('INSERT IGNORE INTO genres (name) VALUES (:name)')->execute([':name' => $gp]);
+                    }
+                }
+            }
         } else {
             $message = 'Vui lòng nhập đầy đủ thông tin bắt buộc.';
         }
@@ -140,7 +187,8 @@ if ($movieId > 0) {
 }
 
 $movies = $pdo->query('SELECT * FROM movies ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
-$pageTitle = 'Admin - Quản lý phim';
+$allGenres = $pdo->query('SELECT * FROM genres ORDER BY name ASC')->fetchAll(PDO::FETCH_ASSOC);
+$pageTitle = 'Admin - Quản lý phim & Thể loại';
 include 'includes/header.php';
 ?>
 
@@ -178,7 +226,12 @@ include 'includes/header.php';
 
         <label style="display: grid; gap: 8px; color: #7fa8b8; font-family: 'Rajdhani', sans-serif;">
           Thể loại
-          <input type="text" name="genre" value="<?php echo htmlspecialchars($editMovie['genre'] ?? ''); ?>" style="padding: 12px; background: rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.2); color: #d7f4fb;" required>
+          <input type="text" name="genre" list="genreSuggestions" value="<?php echo htmlspecialchars($editMovie['genre'] ?? ''); ?>" style="padding: 12px; background: rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.2); color: #d7f4fb;" placeholder="Chọn hoặc nhập thể loại" required>
+          <datalist id="genreSuggestions">
+            <?php foreach ($allGenres as $g): ?>
+              <option value="<?php echo htmlspecialchars($g['name']); ?>"></option>
+            <?php endforeach; ?>
+          </datalist>
         </label>
 
         <label style="display: grid; gap: 8px; color: #7fa8b8; font-family: 'Rajdhani', sans-serif;">
@@ -247,6 +300,52 @@ include 'includes/header.php';
         <?php endif; ?>
       </div>
     </form>
+  </div>
+
+  <!-- ============ KHỐI QUẢN LÝ THỂ LOẠI ============ -->
+  <div class="hud-panel" style="padding: 24px; margin-bottom: 30px;">
+    <div class="hud-corner hud-corner--tl"></div>
+    <div class="hud-corner hud-corner--br"></div>
+    <h2 style="margin-bottom: 20px; text-transform: uppercase;">
+      Quản lý thể loại phim (<?php echo count($allGenres); ?>)
+    </h2>
+
+    <!-- Form thêm thể loại mới -->
+    <form method="post" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 24px;">
+      <input type="hidden" name="action" value="add_genre">
+      <label style="display: grid; gap: 8px; color: #7fa8b8; font-family: 'Rajdhani', sans-serif; flex: 1; min-width: 240px;">
+        Tên thể loại mới
+        <input type="text" name="genre_name" placeholder="Ví dụ: Khoa Học Viễn Tưởng, Hài Hước, Võ Thuật..." style="padding: 12px; background: rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.2); color: #d7f4fb;" required>
+      </label>
+      <button type="submit" class="btn-hud btn-hud--primary" style="height: 46px;">
+        <span class="btn-hud__icon">+</span> THÊM THỂ LOẠI
+      </button>
+    </form>
+
+    <!-- Danh sách các thể loại đang có -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+      <?php foreach ($allGenres as $g): ?>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,240,255,0.04); border: 1px solid rgba(0,240,255,0.15); padding: 10px 14px; border-radius: 4px;">
+          
+          <!-- Form sửa inline -->
+          <form method="post" style="display: flex; align-items: center; gap: 8px; flex: 1; margin: 0;">
+            <input type="hidden" name="action" value="edit_genre">
+            <input type="hidden" name="genre_id" value="<?php echo (int)$g['id']; ?>">
+            <input type="hidden" name="old_genre_name" value="<?php echo htmlspecialchars($g['name']); ?>">
+            <input type="text" name="new_genre_name" value="<?php echo htmlspecialchars($g['name']); ?>" style="padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(0,240,255,0.2); color: #00f0ff; font-weight: 600; width: 100%; font-size: 13px;" required>
+            <button type="submit" class="btn-hud btn-hud--ghost" style="padding: 6px 12px; font-size: 11px;" title="Lưu đổi tên">Lưu</button>
+          </form>
+
+          <!-- Form xóa -->
+          <form method="post" onsubmit="return confirm('Xác nhận xóa thể loại: <?php echo htmlspecialchars(addslashes($g['name'])); ?>?');" style="margin: 0;">
+            <input type="hidden" name="action" value="delete_genre">
+            <input type="hidden" name="genre_id" value="<?php echo (int)$g['id']; ?>">
+            <button type="submit" class="btn-hud btn-hud--ghost" style="padding: 6px 10px; font-size: 11px; border-color: rgba(255,77,0,0.3); color: #ffd7c7;" title="Xóa thể loại">✕</button>
+          </form>
+
+        </div>
+      <?php endforeach; ?>
+    </div>
   </div>
 
   <div class="hud-panel" style="padding: 24px;">

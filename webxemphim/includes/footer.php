@@ -83,8 +83,8 @@
   </div>
 </footer>
 
-<script src="js/main.js?v=20260907-play-center-btn"></script>
-<script src="js/glow-cursor.js?v=20260907-2d"></script>
+<script src="js/main.js?v=20260908-genre-dropdown-v2"></script>
+<script src="js/glow-cursor.js?v=20260908-genre-dropdown-v2"></script>
 </body>
 
 </html>

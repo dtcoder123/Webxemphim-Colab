@@ -2,8 +2,10 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+require_once __DIR__ . '/db.php';
 
 $isLoggedIn = !empty($_SESSION['user_logged_in']);
+$navGenres = getWebsiteGenres($pdo);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -17,8 +19,8 @@ $isLoggedIn = !empty($_SESSION['user_logged_in']);
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-<link rel="stylesheet" href="css/style.css?v=20260907-play-center-btn">
-<link rel="stylesheet" href="css/jarvis-hud.css?v=20260907-play-center-btn">
+<link rel="stylesheet" href="css/style.css?v=20260908-genre-dropdown-v2">
+<link rel="stylesheet" href="css/jarvis-hud.css?v=20260908-genre-dropdown-v2">
 </head>
 <body>
 <!-- ============ JARVIS BOOT SEQUENCE ============ -->
@@ -77,7 +79,21 @@ $isLoggedIn = !empty($_SESSION['user_logged_in']);
       <a href="index.php" class="main-nav__link <?php echo $currentNavPage === 'index.php' ? 'is-active' : ''; ?>">TRANG CHỦ</a>
       <a href="index.php#featured" class="main-nav__link">PHIM ĐỀ CỬ</a>
       <a href="index.php#grid" class="main-nav__link">KHO DỮ LIỆU</a>
-      <a href="index.php#grid" class="main-nav__link">THỂ LOẠI</a>
+      <div class="nav-dropdown" id="genreNavDropdown">
+        <a href="javascript:void(0)" class="main-nav__link" id="genreNavBtn" role="button" aria-expanded="false" aria-haspopup="true">THỂ LOẠI</a>
+        <div class="genre-dropdown-menu" id="genreDropdownMenu">
+          <div class="genre-dropdown-grid">
+            <a href="index.php?genre=Tất cả#grid" class="genre-item genre-item--all" data-genre="Tất cả">
+              Tất cả thể loại
+            </a>
+            <?php foreach ($navGenres as $g): ?>
+              <a href="index.php?genre=<?php echo urlencode($g); ?>#grid" class="genre-item" data-genre="<?php echo htmlspecialchars($g); ?>">
+                <?php echo htmlspecialchars($g); ?>
+              </a>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
       <?php if ($isLoggedIn): ?>
         <a href="history.php" class="main-nav__link <?php echo $currentNavPage === 'history.php' ? 'is-active' : ''; ?>">LỊCH SỬ</a>
         <a href="favorites.php" class="main-nav__link <?php echo $currentNavPage === 'favorites.php' ? 'is-active' : ''; ?>">YÊU THÍCH</a>
