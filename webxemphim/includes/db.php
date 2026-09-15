@@ -89,12 +89,33 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS password_resets (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
-        token_hash CHAR(64) NOT NULL UNIQUE,
+        otp_hash CHAR(64) NOT NULL,
         expires_at DATETIME NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_password_resets_user (user_id),
         CONSTRAINT fk_password_resets_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $passwordResetColumns = $pdo->query(
+        "SELECT COLUMN_NAME, IS_NULLABLE
+         FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'password_resets'"
+    )->fetchAll(PDO::FETCH_KEY_PAIR);
+
+    if (!isset($passwordResetColumns['otp_hash'])) {
+        $pdo->exec(
+            'ALTER TABLE password_resets
+             ADD COLUMN otp_hash CHAR(64) NOT NULL AFTER user_id'
+        );
+    }
+
+    if (isset($passwordResetColumns['token_hash'])) {
+        $pdo->exec(
+            'ALTER TABLE password_resets
+             DROP COLUMN token_hash'
+        );
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS movies (
         id INT AUTO_INCREMENT PRIMARY KEY,
