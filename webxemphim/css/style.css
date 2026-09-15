@@ -347,6 +347,7 @@ h4 {
   display: flex;
   gap: 8px;
 }
+
 .main-nav__link {
   font-family: var(--font-mono);
   font-size: 13px;

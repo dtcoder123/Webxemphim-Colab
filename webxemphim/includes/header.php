@@ -21,6 +21,9 @@ $navGenres = getWebsiteGenres($pdo);
 
 <link rel="stylesheet" href="css/style.css?v=20260908-genre-dropdown-v2">
 <link rel="stylesheet" href="css/jarvis-hud.css?v=20260908-genre-dropdown-v2">
+<?php if (in_array($pageTitle ?? '', ['Đăng nhập', 'Đăng ký'], true)): ?>
+<link rel="stylesheet" href="css/auth-drift-wall.css?v=20260908-drift-wall">
+<?php endif; ?>
 </head>
 <body>
 <!-- ============ JARVIS BOOT SEQUENCE ============ -->
@@ -137,6 +140,7 @@ $navGenres = getWebsiteGenres($pdo);
       <button class="btn-hud btn-hud--ghost" id="navToggle" aria-label="Mở menu">
         <span></span><span></span><span></span>
       </button>
+
     </div>
 
   </div>
