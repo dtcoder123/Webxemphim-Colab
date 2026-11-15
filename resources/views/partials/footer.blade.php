@@ -2,46 +2,57 @@
 <button class="ai-chat-launcher"
         id="aiChatLauncher"
         type="button"
-        aria-label="Mở AI Chatbox">
+        aria-label="Mở FAIA">
     <span class="ai-chat-launcher__pulse"></span>
     <span class="ai-chat-launcher__icon">✦</span>
-    <span class="ai-chat-launcher__label">AI CHAT</span>
+    <span class="ai-chat-launcher__label">FAIA</span>
 </button>
 
 <aside class="ai-chatbox"
        id="aiChatbox"
-       aria-label="AI Chatbox"
+       aria-label="FAIA"
        aria-hidden="true">
     <div class="ai-chatbox__header">
         <div>
-            <span class="ai-chatbox__eyebrow">FILM.SYS // INTELLIGENCE</span>
-            <h2>AI Chatbox</h2>
+            <span class="ai-chatbox__eyebrow">FILM.SYS ARTIFICIAL INTELLIGENCE ASSISTANT</span>
+            <h2>FAIA</h2>
         </div>
         <button class="ai-chatbox__close"
                 id="aiChatClose"
                 type="button"
-                aria-label="Đóng AI Chatbox">×</button>
+                aria-label="Đóng FAIA">×</button>
     </div>
 
     <div class="ai-chatbox__messages" id="aiChatMessages" aria-live="polite">
         <div class="ai-chat-message ai-chat-message--assistant">
             <span class="ai-chat-message__avatar">✦</span>
-            <p>Mình có thể tìm phim, tra thể loại, diễn viên, đạo diễn và thông tin đang có trong kho phim.</p>
+            @if (session('user_logged_in') && session('user_id'))
+            <p>Xin chào {{ session('user_name') }}, mình là FAIA! Mình gợi ý phim đang có trên FILM.SYS, tìm phim theo tên, thể loại, diễn viên và hướng dẫn bạn dùng website.</p>
+            @else
+            <div>
+                <p>Xin chào, mình là FAIA! Bạn cần đăng nhập để trò chuyện với FAIA.</p>
+                <div class="ai-chat-actions">
+                    <a href="{{ route('login') }}">Đăng nhập</a>
+                    <a href="{{ route('register') }}">Đăng ký</a>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
+    @if (session('user_logged_in') && session('user_id'))
     <div class="ai-chatbox__quick-actions">
         <button type="button"
-                data-ai-prompt="Gợi ý cho tôi vài phim hay trong kho phim">
-            Gợi ý phim
+                data-ai-prompt="Gợi ý phim hot">
+            Phim hot
         </button>
         <button type="button"
                 data-ai-prompt="Tìm phim theo thể loại hành động">
             Phim hành động
         </button>
         <button type="button"
-                data-ai-prompt="Phim nào đang nổi bật trên website?">
-            Phim nổi bật
+                data-ai-prompt="Phim yêu thích của tôi">
+            Yêu thích của tôi
         </button>
     </div>
 
@@ -49,11 +60,12 @@
         @csrf
         <textarea id="aiChatInput"
                   rows="1"
-                  maxlength="2000"
-                  placeholder="Hỏi về phim trong website..."
+                  maxlength="500"
+                  placeholder="Hỏi FAIA về phim trên FILM.SYS..."
                   aria-label="Nhập câu hỏi"></textarea>
         <button type="submit" aria-label="Gửi tin nhắn">➤</button>
     </form>
+    @endif
 </aside>
 
 <footer class="site-footer hud-panel">

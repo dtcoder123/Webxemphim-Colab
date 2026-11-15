@@ -912,7 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (aiChatMessages) aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
   };
 
-  const addAiMessage = (text, role = 'assistant', movies = []) => {
+  const addAiMessage = (text, role = 'assistant', movies = [], actions = []) => {
     if (!aiChatMessages) return;
     const message = document.createElement('div');
     message.className = `ai-chat-message ai-chat-message--${role}`;
@@ -930,12 +930,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const movieList = document.createElement('div');
       movieList.className = 'ai-chat-movie-list';
       movies.forEach((movie) => {
-        const card = document.createElement('div');
+        // Cả thẻ là link: bấm vào sẽ chuyển tới trang phim.
+        const card = document.createElement('a');
         card.className = 'ai-chat-movie';
+        card.href = movie.watch_url || `/movies/${Number(movie.id || 0)}`;
 
         const image = document.createElement('img');
         image.src = movie.poster || '';
         image.alt = movie.title || 'Phim';
+        image.loading = 'lazy';
 
         const info = document.createElement('div');
         info.className = 'ai-chat-movie__info';
@@ -945,14 +948,32 @@ document.addEventListener('DOMContentLoaded', () => {
         meta.textContent = `${movie.genre || 'Chưa có thể loại'} · ${movie.year || 'N/A'} · ★ ${movie.rating || 'N/A'}`;
         info.append(title, meta);
 
-        const link = document.createElement('a');
+        if (movie.description) {
+          const desc = document.createElement('span');
+          desc.className = 'ai-chat-movie__desc';
+          desc.textContent = movie.description;
+          info.appendChild(desc);
+        }
+
+        const link = document.createElement('span');
         link.className = 'ai-chat-movie__link';
-        link.href = movie.watch_url || `/movies/${Number(movie.id || 0)}`;
-        link.textContent = 'Xem';
+        link.textContent = 'Xem ▶';
         card.append(image, info, link);
         movieList.appendChild(card);
       });
       content.appendChild(movieList);
+    }
+
+    if (actions.length && role === 'assistant') {
+      const actionList = document.createElement('div');
+      actionList.className = 'ai-chat-actions';
+      actions.forEach((action) => {
+        const a = document.createElement('a');
+        a.href = action.url;
+        a.textContent = action.label;
+        actionList.appendChild(a);
+      });
+      content.appendChild(actionList);
     }
 
     message.append(avatar, content);
@@ -968,7 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = document.createElement('div');
     item.id = 'aiChatLoading';
     item.className = 'ai-chat-message ai-chat-message--assistant';
-    item.innerHTML = '<span class="ai-chat-message__avatar">✦</span><p class="ai-chat-message__typing">AI ĐANG SUY NGHĨ...</p>';
+    item.innerHTML = '<span class="ai-chat-message__avatar">✦</span><p class="ai-chat-message__typing">FAIA ĐANG SUY NGHĨ...</p>';
     aiChatMessages.appendChild(item);
     scrollAiChat();
   };
@@ -983,17 +1004,27 @@ document.addEventListener('DOMContentLoaded', () => {
     setAiLoading(true);
 
     try {
-      const response = await fetch('api/ai_chat.php', {
+      const response = await fetch('/faia/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, messages: aiConversation.slice(-8) })
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify({ message })
       });
+      if (response.status === 429) throw new Error('Bạn hỏi nhanh quá, đợi FAIA một chút nhé.');
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || 'AI hiện chưa sẵn sàng.');
+      if (response.status === 401) {
+        setAiLoading(false);
+        addAiMessage(payload.message, 'assistant', [], [{ label: 'Đăng nhập', url: payload.login_url || '/login' }]);
+        return;
+      }
+      if (!response.ok) throw new Error(payload.message || 'FAIA hiện chưa sẵn sàng.');
 
       aiConversation.push({ role: 'assistant', content: payload.answer || '' });
       setAiLoading(false);
-      addAiMessage(payload.answer || 'Mình chưa nhận được câu trả lời phù hợp.', 'assistant', payload.movies || []);
+      addAiMessage(payload.answer || 'Mình chưa nhận được câu trả lời phù hợp.', 'assistant', payload.movies || [], payload.actions || []);
     } catch (error) {
       setAiLoading(false);
       addAiMessage(error.message || 'Không thể kết nối AI lúc này.', 'assistant');

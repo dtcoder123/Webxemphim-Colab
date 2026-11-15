@@ -16,8 +16,8 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
-    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v=laravel2">
-    <link rel="stylesheet" href="{{ asset('assets/css/jarvis-hud.css') }}?v=laravel2">
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v=laravel4">
+    <link rel="stylesheet" href="{{ asset('assets/css/jarvis-hud.css') }}?v=laravel4">
 
     @if (in_array(trim($__env->yieldContent('page-type')), ['login', 'register']))
         <link rel="stylesheet" href="{{ asset('assets/css/auth-drift-wall.css') }}">
@@ -30,9 +30,9 @@
 
     @include('partials.footer')
 
-    <script src="{{ asset('assets/js/main.js') }}?v=laravel2"></script>
-    <script src="{{ asset('assets/js/glow-cursor.js') }}?v=laravel2"></script>
-    <script src="{{ asset('assets/js/warp-text.js') }}?v=laravel2"></script>
+    <script src="{{ asset('assets/js/main.js') }}?v=laravel4"></script>
+    <script src="{{ asset('assets/js/glow-cursor.js') }}?v=laravel4"></script>
+    <script type="module" src="{{ asset('assets/js/warp-text.js') }}?v=laravel4"></script>
 
     @stack('scripts')
 </body>

@@ -130,3 +130,8 @@ Route::put('/admin/movies/{id}', [
 Route::patch('/admin/movies/{id}/hide', [
     AdminController::class, 'hideMovie'
 ])->whereNumber('id')->name('admin.movies.hide');
+
+// FAIA — Film.sys Artificial Intelligence Assistant.
+Route::post('/faia/chat', [
+    \App\Http\Controllers\FaiaController::class, 'chat'
+])->middleware('throttle:30,1')->name('faia.chat');

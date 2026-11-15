@@ -187,7 +187,7 @@ class AuthController extends Controller
 
         $resetId = DB::table('password_resets')->insertGetId([
             'user_id' => $user->id,
-            'otp_hash' => $otpHash,
+            'token_hash' => $otpHash,
             'expires_at' => now()->addMinutes(5),
             'created_at' => now(),
         ]);
@@ -277,7 +277,7 @@ class AuthController extends Controller
 
         $inputHash = hash('sha256', $request->input('otp'));
 
-        if (!hash_equals($reset->otp_hash, $inputHash)) {
+        if (!hash_equals($reset->token_hash, $inputHash)) {
             $attempts++;
             $request->session()->put('otp_attempts', $attempts);
 

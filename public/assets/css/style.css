@@ -2522,3 +2522,30 @@ h4 {
 .movie-suggestions__all:hover {
   background: rgba(0, 240, 255, 0.14);
 }
+
+/* ---------- FAIA: thẻ phim + nút hành động ---------- */
+a.ai-chat-movie { text-decoration: none; color: inherit; align-items: flex-start; transition: border-color .2s, background .2s; }
+a.ai-chat-movie:hover { border-color: var(--cyan); background: rgba(127, 231, 255, 0.08); }
+a.ai-chat-movie img { width: 56px; height: 80px; flex: 0 0 56px; }
+.ai-chat-movie__info strong { white-space: normal; }
+.ai-chat-movie__desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+a.ai-chat-movie .ai-chat-movie__link { align-self: center; }
+.ai-chat-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ai-chat-actions a {
+  padding: 5px 10px;
+  border: 1px solid rgba(127, 231, 255, 0.3);
+  border-radius: 999px;
+  color: var(--cyan);
+  font-size: 11px;
+  text-decoration: none;
+}
+.ai-chat-actions a:hover { background: rgba(127, 231, 255, 0.1); }
