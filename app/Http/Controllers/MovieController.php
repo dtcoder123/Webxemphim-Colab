@@ -11,7 +11,7 @@ class MovieController extends Controller
 
     public function index(Request $request)
     {
-        $query = DB::table('movies');
+        $query = DB::table('movies')->where('status', 1);
 
         // Lấy từ khóa tìm kiếm, chỉ khai báo một lần.
         $keyword = trim((string) $request->query('search', ''));
@@ -59,6 +59,7 @@ class MovieController extends Controller
 
         // Danh sách thể loại.
         $genres = DB::table('movies')
+            ->where('status', 1)
             ->whereNotNull('genre')
             ->where('genre', '<>', '')
             ->distinct()
@@ -342,8 +343,16 @@ class MovieController extends Controller
 
     public function toggleFavorite(Request $request, $id)
     {
+        // Gọi bằng fetch (nút ở trang xem phim) thì trả JSON;
+        // gửi form thường (nút "Bỏ yêu thích" ở trang /favorites) thì quay lại trang trước.
+        $respond = fn (array $data, int $status = 200) => $request->expectsJson()
+            ? response()->json($data, $status)
+            : ($status === 401
+                ? redirect()->route('login')->with('error', $data['message'])
+                : back()->with($data['success'] ? 'success' : 'error', $data['message']));
+
         if (!session('user_logged_in') || !session('user_id')) {
-            return response()->json([
+            return $respond([
                 'success' => false,
                 'message' => 'Vui lòng đăng nhập để lưu phim yêu thích.',
             ], 401);
@@ -355,7 +364,7 @@ class MovieController extends Controller
             ->exists();
 
         if (!$exists) {
-            return response()->json([
+            return $respond([
                 'success' => false,
                 'message' => 'Không tìm thấy phim.',
             ], 404);
@@ -374,7 +383,7 @@ class MovieController extends Controller
                 ->where('movie_id', $id)
                 ->delete();
 
-            return response()->json([
+            return $respond([
                 'success' => true,
                 'favorited' => false,
                 'message' => 'Đã xóa khỏi danh sách yêu thích.',
@@ -387,7 +396,7 @@ class MovieController extends Controller
             'created_at' => now(),
         ]);
 
-        return response()->json([
+        return $respond([
             'success' => true,
             'favorited' => true,
             'message' => 'Đã thêm vào danh sách yêu thích!',
